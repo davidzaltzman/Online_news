@@ -6,6 +6,8 @@ import org.jsoup.select.Elements;
 
 import java.io.*;
 import java.nio.file.*;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.*;
 
 public class FlashNewsNotifier {
@@ -27,10 +29,14 @@ public class FlashNewsNotifier {
 
             List<String> newMessages = new ArrayList<>();
             for (var element : h3Elements) {
+                if (!element.tagName().equals("h3")) continue;
                 String text = element.text().trim();
-                if (!text.isEmpty() && !sentIds.contains(text)) {
+                if (text.isEmpty()) continue;
+
+                String id = sha256Hex(text);
+                if (!sentIds.contains(id)) {
                     newMessages.add(text);
-                    sentIds.add(text);
+                    sentIds.add(id);
                 }
             }
 
@@ -100,5 +106,17 @@ public class FlashNewsNotifier {
 
         message.setContent(html.toString(), "text/html; charset=UTF-8");
         Transport.send(message);
+    }
+
+    private static String sha256Hex(String text) throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));
+        StringBuilder hexString = new StringBuilder(2 * hash.length);
+        for (byte b : hash) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) hexString.append('0');
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 }
