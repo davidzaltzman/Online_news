@@ -1,0 +1,43 @@
+name: Flash News Notifier
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # כל שעה עגולה
+  workflow_dispatch:     # הרצה ידנית
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: true
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Compile Java code
+        run: |
+          mkdir -p out
+          javac -cp "lib/*" -d out FlashNewsNotifier.java
+
+      - name: Run Java program
+        run: |
+          java -cp "out:lib/*" FlashNewsNotifier
+        env:
+          EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+
+      - name: Commit updated sent_ids.txt
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add sent_ids.txt
+          git commit -m "Update sent_ids.txt [bot]" || echo "No changes to commit"
+          git push
