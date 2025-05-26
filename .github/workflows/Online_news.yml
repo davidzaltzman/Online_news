@@ -3,20 +3,20 @@ name: Flash News Notifier
 on:
   schedule:
     - cron: '0 * * * *'  # כל שעה עגולה
-  workflow_dispatch:     # הרצה ידנית
+  workflow_dispatch:
 
 jobs:
   build-and-run:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write  # נחוץ בשביל push
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          persist-credentials: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -31,9 +31,9 @@ jobs:
         run: |
           java -cp "out:lib/*" FlashNewsNotifier
         env:
-          EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
 
       - name: Commit updated sent_ids.txt
         run: |
