@@ -9,7 +9,7 @@ import java.nio.file.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
-
+ 
 public class FlashNewsNotifier {
 
     private static final String URL = "https://www.kore.co.il/flashNews";
@@ -22,7 +22,7 @@ public class FlashNewsNotifier {
 
     public static void main(String[] args) {
         try {
-            LinkedHashSet<String> sentIds = loadSentIds(); // שמירה על סדר הכנסה
+            LinkedHashSet<String> sentIds = loadSentIds();
 
             Document doc = Jsoup.connect(URL).get();
             Elements h3Elements = doc.select("h3");
@@ -42,7 +42,7 @@ public class FlashNewsNotifier {
 
             if (!newMessages.isEmpty()) {
                 sendEmail(newMessages);
-                saveSentIds(sentIds);
+                saveSentIds(sentIds, newMessages.size()); // עכשיו מעדכנים ל- 300 ולא ל- 120
                 System.out.println("נשלחו " + newMessages.size() + " הודעות חדשות.");
             } else {
                 System.out.println("אין הודעות חדשות לשלוח.");
@@ -61,13 +61,14 @@ public class FlashNewsNotifier {
         return new LinkedHashSet<>(Files.readAllLines(file.toPath()));
     }
 
-    private static void saveSentIds(Set<String> ids) throws IOException {
-        // שמירה על 120 האחרונות בלבד (הגדלנו מ-70 ל-120)
-        List<String> trimmed = new ArrayList<>(ids);
-        if (trimmed.size() > 120) {
-            trimmed = trimmed.subList(trimmed.size() - 120, trimmed.size());
+    private static void saveSentIds(LinkedHashSet<String> ids, int newMessagesCount) throws IOException {
+        List<String> idList = new ArrayList<>(ids);
+        int excess = idList.size() - 300;
+        if (excess > 0) {
+            // מסירים בדיוק כפי שנכנס – כלומר מסירים הראשונים שנכנסו
+            idList = idList.subList(excess, idList.size()); 
         }
-        Files.write(Paths.get(SENT_IDS_FILE), trimmed);
+        Files.write(Paths.get(SENT_IDS_FILE), idList);
     }
 
     private static void sendEmail(List<String> messages) throws MessagingException {
@@ -85,13 +86,13 @@ public class FlashNewsNotifier {
                 });
 
         Message message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(FROM_EMAIL));
-        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(TO_EMAIL));
-        message.setSubject("🎯 הידד! 😄 יש הודעה חדשה מאתר כל רגע");
+        message.setFrom(new InternetAddress(FROM_EMAIL));  
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(TO_EMAIL));  
+        message.setSubject("🎯 הידד! 😄 יש הודעות חדשות מאתר כל רגע");
 
         StringBuilder html = new StringBuilder();
         html.append("<html><body style='font-family: Arial; direction: rtl;'>");
-        html.append("<h2 style='color: #0B5394;'>📢 התחדשנו בהודעות חדשות מהאתר!</h2>");
+        // html.append("<h2 style='color: #0B5394;'>📢 התחדשנו בהודעות חדשות מהאתר!</h2>");
 
         for (String msg : messages) {
             html.append("<div style='border: 1px solid #FFA500; background-color: #FFF3E0; ")
@@ -101,7 +102,7 @@ public class FlashNewsNotifier {
         }
 
         html.append("<hr style='margin-top:30px;'>");
-        html.append("<div style='color: #888; font-size: 12px;'>הודעה זו נשלחה אוטומטית מתוך FlashNewsNotifier</div>");
+        // html.append("<div style='color: #888; font-size: 12px;'>הודעה זו נשלחה אוטומטית מתוך FlashNewsNotifier</div>");
         html.append("</body></html>");
 
         message.setContent(html.toString(), "text/html; charset=UTF-8");
@@ -110,14 +111,13 @@ public class FlashNewsNotifier {
 
     private static String sha256Hex(String text) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));
+        byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8)); 
         StringBuilder hexString = new StringBuilder(2 * hash.length);
         for (byte b : hash) {
             String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) hexString.append('0');
+            if (hex.length() == 1) hexString.append('0'); 
             hexString.append(hex);
         }
         return hexString.toString();
     }
 }
-
