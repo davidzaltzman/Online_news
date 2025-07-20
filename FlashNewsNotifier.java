@@ -13,7 +13,7 @@ import java.util.*;
 public class FlashNewsNotifier {
 
     private static final String URL = "https://www.kore.co.il/flashNews";
-    private static final String SENT_IDS_FILE = "sent_ids.txt";
+    private static final String SENT_IDS_FILE = "last.txt";
 
     // עכשיו הערכים מתקבלים מ-Environment Variables (למשל מ-GitHub Secrets)
     private static final String FROM_EMAIL = System.getenv("EMAIL_FROM");
