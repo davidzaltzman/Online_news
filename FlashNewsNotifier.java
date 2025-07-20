@@ -16,9 +16,9 @@ public class FlashNewsNotifier {
     private static final String SENT_IDS_FILE = "sent_ids.txt";
 
     // עכשיו הערכים מתקבלים מ-Environment Variables (למשל מ-GitHub Secrets)
-    private static final String FROM_EMAIL = System.getenv("EMAIL_USER");
-    private static final String APP_PASSWORD = System.getenv("EMAIL_PASS");
-    private static final String TO_EMAIL = System.getenv("EMAIL_RECIPIENTS");
+    private static final String FROM_EMAIL = System.getenv("EMAIL_FROM");
+    private static final String APP_PASSWORD = System.getenv("EMAIL_PASSWORD");
+    private static final String TO_EMAIL = System.getenv("EMAIL_TO");
 
     public static void main(String[] args) {
         try {
