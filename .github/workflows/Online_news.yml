@@ -25,7 +25,7 @@ jobs:
       - name: Compile Java code with external libraries
         run: |
           mkdir -p out
-          javac -cp "lib/*" -d out ForumSyria.java
+          javac -cp "lib/*" -d out FlashNewsNotifier.java
 
       - name: Run Java Program
         run: |
