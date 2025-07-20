@@ -1,44 +1,46 @@
-name: Flash News Notifier
+name: Check for New Prog Messages
 
 on:
   schedule:
-    - cron: '0 * * * *'  # כל שעה עגולה
-  workflow_dispatch:
+    - cron: '*/10 * * * *'  # כל 10 דקות
+  workflow_dispatch:        # מאפשר גם הפעלה ידנית
+
+permissions:
+  contents: write  # מאפשר כתיבה לקבצים (commit)
 
 jobs:
-  build-and-run:
+  check-prog:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: write  # נחוץ בשביל push
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'  # ודא שזו הגרסה שאתה באמת משתמש בה
 
-      - name: Compile Java code
+      - name: Compile Java code with external libraries
         run: |
           mkdir -p out
-          javac -cp "lib/*" -d out FlashNewsNotifier.java
+          javac -cp "lib/*" -d out ForumSyria.java
 
-      - name: Run Java program
+      - name: Run Java Program
         run: |
-          java -cp "out:lib/*" FlashNewsNotifier
+          java -cp "out:lib/*" ForumSyria
         env:
-          EMAIL_USER: ${{ secrets.EMAIL_USER }}
-          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
-          EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
 
-      - name: Commit updated sent_ids.txt
+      - name: Commit last.txt if changed
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add sent_ids.txt
-          git diff --cached --quiet || git commit -m "Update sent_ids.txt [bot]"
-          git push
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add last.txt
+          git diff --cached --quiet || git commit -m "Update last.txt"
+          git push origin main --force
+        env:
+          MY_PAT: ${{ secrets.MY_PAT }}
