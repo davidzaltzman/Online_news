@@ -2,8 +2,9 @@ name: Check for New Prog Messages
 
 on:
   schedule:
-    - cron: '*/10 * * * *'  # כל 10 דקות
-  workflow_dispatch:        # מאפשר גם הפעלה ידנית
+    - cron: '0 */2 * * *'  # כל שעתיים עגולות
+  workflow_dispatch:        # מאפשר גם הרצה ידנית
+
 
 permissions:
   contents: write  # מאפשר כתיבה לקבצים (commit)
