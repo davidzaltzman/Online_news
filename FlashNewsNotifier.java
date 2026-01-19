@@ -14,7 +14,7 @@ public class FlashNewsNotifier {
 
     private static final String URL = "https://www.kore.co.il/flashNews";
     private static final String LAST_FILE = "last.txt";
-    private static final int MAX_STORED_IDS = 300;
+    private static final int MAX_STORED_IDS = 5000;
 
     private static final String FROM_EMAIL = System.getenv("EMAIL_FROM");
     private static final String PASSWORD   = System.getenv("EMAIL_PASSWORD");
