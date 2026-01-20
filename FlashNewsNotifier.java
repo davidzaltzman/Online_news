@@ -8,6 +8,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.security.MessageDigest;
+import java.text.Normalizer;
 import java.util.*;
 
 public class FlashNewsNotifier {
@@ -22,34 +23,34 @@ public class FlashNewsNotifier {
 
     public static void main(String[] args) {
         try {
-            List<String> previousIds = readPreviousIds();
+            Set<String> previousIds = readPreviousIds();
 
             Document doc = Jsoup.connect(URL).get();
             Elements h3Elements = doc.select("h3");
 
-            List<String> allMessages = new ArrayList<>();
             Map<String, String> messageIdMap = new LinkedHashMap<>();
-
             for (var element : h3Elements) {
-                String text = element.text().trim();
+                String text = normalizeText(element.text());
                 if (text.isEmpty()) continue;
 
                 String id = sha256(text);
-                allMessages.add(text);
                 messageIdMap.put(text, id);
             }
 
             List<String> newMessages = new ArrayList<>();
-            for (String msg : allMessages) {
-                String id = messageIdMap.get(msg);
-                if (!previousIds.contains(id)) {
+            for (String msg : messageIdMap.keySet()) {
+                if (!previousIds.contains(messageIdMap.get(msg))) {
                     newMessages.add(msg);
                 }
             }
 
             if (!newMessages.isEmpty()) {
                 sendEmail(newMessages);
-                writeLatestIds(previousIds, newMessages, messageIdMap);
+
+                // עדכון הקובץ אחרי השליחה
+                previousIds.addAll(messageIdMap.values()); // שמור גם ההודעות החדשות
+                writeLatestIds(previousIds);
+
                 System.out.println("✅ נשלחו " + newMessages.size() + " הודעות חדשות.");
             } else {
                 System.out.println("ℹ️ אין הודעות חדשות לשלוח.");
@@ -62,35 +63,24 @@ public class FlashNewsNotifier {
 
     /* ===================== לוגיקת זיהוי ===================== */
 
-    private static List<String> readPreviousIds() {
+    private static Set<String> readPreviousIds() {
         try {
-            return Files.readAllLines(Path.of(LAST_FILE));
+            return new HashSet<>(Files.readAllLines(Path.of(LAST_FILE), StandardCharsets.UTF_8));
         } catch (IOException e) {
-            return new ArrayList<>();
+            return new HashSet<>();
         }
     }
 
-    private static void writeLatestIds(
-            List<String> existingIds,
-            List<String> newMessages,
-            Map<String, String> idMap
-    ) throws IOException {
-
-        List<String> combined = new ArrayList<>(existingIds);
-
-        for (String msg : newMessages) {
-            String id = idMap.get(msg);
-            if (!combined.contains(id)) {
-                combined.add(id);
-            }
-        }
-
-        int start = Math.max(0, combined.size() - MAX_STORED_IDS);
-        List<String> trimmed = combined.subList(start, combined.size());
+    private static void writeLatestIds(Set<String> allIds) throws IOException {
+        // שמירה של ה־MAX_STORED_IDS האחרונים
+        List<String> idsList = new ArrayList<>(allIds);
+        int start = Math.max(0, idsList.size() - MAX_STORED_IDS);
+        List<String> trimmed = idsList.subList(start, idsList.size());
 
         Files.write(
                 Path.of(LAST_FILE),
                 trimmed,
+                StandardCharsets.UTF_8,
                 StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING
         );
@@ -102,6 +92,11 @@ public class FlashNewsNotifier {
         StringBuilder hex = new StringBuilder();
         for (byte b : hash) hex.append(String.format("%02x", b));
         return hex.toString();
+    }
+
+    private static String normalizeText(String text) {
+        // נירמול Unicode והסרת רווחים מיותרים
+        return Normalizer.normalize(text, Normalizer.Form.NFKC).trim();
     }
 
     /* ===================== שליחת מייל ===================== */
