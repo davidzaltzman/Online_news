@@ -118,7 +118,8 @@ public class FlashNewsNotifier {
         Message message = new MimeMessage(session);
         message.setFrom(new InternetAddress(FROM_EMAIL));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(TO_EMAIL));
-        message.setSubject("📬 הודעות חדשות מאתר כל רגע");
+        message.setSubject("🔔 הודעות חדשות מאתר כל רגע");
+
 
         StringBuilder html = new StringBuilder();
         html.append("<html><body style='font-family: Arial; direction: rtl;'>");
