@@ -2,6 +2,7 @@ import jakarta.mail.*;
 import jakarta.mail.internet.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.*;
@@ -29,7 +30,10 @@ public class FlashNewsNotifier {
             Elements h3Elements = doc.select("h3");
 
             Map<String, String> messageIdMap = new LinkedHashMap<>();
-            for (var element : h3Elements) {
+            for (Element element : h3Elements) {
+                // שולח רק h3 שאין לו אלמנטים פנימיים
+                if (!element.children().isEmpty()) continue;
+
                 String text = normalizeText(element.text());
                 if (text.isEmpty()) continue;
 
@@ -122,7 +126,6 @@ public class FlashNewsNotifier {
         message.setFrom(new InternetAddress(FROM_EMAIL));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(TO_EMAIL));
         message.setSubject("🔔 הודעות חדשות מאתר כל רגע");
-
 
         StringBuilder html = new StringBuilder();
         html.append("<html><body style='font-family: Arial; direction: rtl;'>");
