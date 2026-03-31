@@ -48,7 +48,10 @@ public class FlashNewsNotifier {
                 sendEmail(newMessages);
 
                 // עדכון הקובץ אחרי השליחה
-                previousIds.addAll(messageIdMap.values()); // שמור גם ההודעות החדשות
+                for (String id : messageIdMap.values()) {
+                    previousIds.add(id); // LinkedHashSet שומר סדר הוספה
+                }
+
                 writeLatestIds(previousIds);
 
                 System.out.println("✅ נשלחו " + newMessages.size() + " הודעות חדשות.");
@@ -65,14 +68,14 @@ public class FlashNewsNotifier {
 
     private static Set<String> readPreviousIds() {
         try {
-            return new HashSet<>(Files.readAllLines(Path.of(LAST_FILE), StandardCharsets.UTF_8));
+            return new LinkedHashSet<>(Files.readAllLines(Path.of(LAST_FILE), StandardCharsets.UTF_8));
         } catch (IOException e) {
-            return new HashSet<>();
+            return new LinkedHashSet<>();
         }
     }
 
     private static void writeLatestIds(Set<String> allIds) throws IOException {
-        // שמירה של ה־MAX_STORED_IDS האחרונים
+        // שמירה של ה־MAX_STORED_IDS האחרונים לפי סדר
         List<String> idsList = new ArrayList<>(allIds);
         int start = Math.max(0, idsList.size() - MAX_STORED_IDS);
         List<String> trimmed = idsList.subList(start, idsList.size());
