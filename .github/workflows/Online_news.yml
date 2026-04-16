@@ -1,9 +1,9 @@
 name: Check for New Prog Messages
 
 on:
-  schedule:
-    - cron: '0 8 * * *'   # 08:00 בבוקר
-    - cron: '0 1 * * *'   # 01:00 בלילה
+  #schedule:
+   # - cron: '0 8 * * *'   # 08:00 בבוקר
+   # - cron: '0 1 * * *'   # 01:00 בלילה
   workflow_dispatch:      # מאפשר גם הרצה ידנית
 
 permissions:
