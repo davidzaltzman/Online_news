@@ -131,7 +131,7 @@ public class FlashNewsNotifier {
         html.append("<html><body style='font-family: Arial; direction: rtl;'>");
 
         for (String msg : messages) {
-            html.append("<div style='border:1px solid #FFA500; background:#FFF3E0; ")
+            html.append("<div style='border:1px solid #90A4AE; background:#ECEFF1; ")
                 .append("padding:15px; margin-bottom:15px; border-radius:8px;'>")
                 .append(msg)
                 .append("</div>");
